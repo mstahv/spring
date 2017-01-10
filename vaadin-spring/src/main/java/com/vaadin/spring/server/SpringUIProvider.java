@@ -46,6 +46,9 @@ import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.SingleComponentContainer;
 import com.vaadin.ui.UI;
 import com.vaadin.util.CurrentInstance;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.TreeMap;
 
 /**
  * Vaadin {@link com.vaadin.server.UIProvider} that looks up UI classes from the
@@ -68,8 +71,8 @@ public class SpringUIProvider extends UIProvider {
      * serialized.
      */
     private transient WebApplicationContext webApplicationContext = null;
-    private final Map<String, Class<? extends UI>> pathToUIMap = new ConcurrentHashMap<String, Class<? extends UI>>();
-    private final Map<String, Class<? extends UI>> wildcardPathToUIMap = new ConcurrentHashMap<String, Class<? extends UI>>();
+    private final Map<String, Class<? extends UI>> pathToUIMap = new ConcurrentHashMap<>();
+    private final Map<String, Class<? extends UI>> wildcardPathToUIMap = Collections.synchronizedMap(new TreeMap<>((o1, o2) -> o2.length() - o1.length()));
 
     private ServletContext servletContext;
 
@@ -138,17 +141,21 @@ public class SpringUIProvider extends UIProvider {
             UIClassSelectionEvent uiClassSelectionEvent) {
         final String path = extractUIPathFromRequest(
                 uiClassSelectionEvent.getRequest());
-        if (pathToUIMap.containsKey(path)) {
-            return pathToUIMap.get(path);
-        }
-
         for (Map.Entry<String, Class<? extends UI>> entry : wildcardPathToUIMap
                 .entrySet()) {
             if (path.startsWith(entry.getKey())) {
-                return entry.getValue();
+                uiClassSelectionEvent.getRequest().setAttribute(UIProvider.UI_ROOT_PATH, entry.getKey());
+                final Class<? extends UI> value = entry.getValue();
+                return value;
             }
         }
 
+        // TODO figure out why these would be good in some case instead of wildcard ones...
+        if (pathToUIMap.containsKey(path)) {
+            uiClassSelectionEvent.getRequest().setAttribute(UIProvider.UI_ROOT_PATH, path);
+            return pathToUIMap.get(path);
+        }
+        
         return null;
     }
 

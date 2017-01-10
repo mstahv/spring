@@ -93,18 +93,24 @@ public class VaadinServletConfiguration implements InitializingBean {
         Map<String, Object> urlMappings = new HashMap<String, Object>();
 
         if (isMappedToRoot()) {
+            // TODO should find out if this works, should support both
+            // root mapped vaadin UIs (with path parameters) and stuff like 
+            // spring boot actuator
+            mapping.setDefaultHandler(vaadinUiForwardingController());
+//            urlMappings.put("/*", vaadinUiForwardingController());
+//            mapping.setRootHandler(vaadinUiForwardingController());
 
-            // map every @SpringUI both with and without trailing slash
-            for (String path : getUIPaths()) {
-                urlMappings.put("/" + path, vaadinUiForwardingController());
-                if (path.length() > 0) {
-                    urlMappings.put("/" + path + "/",
-                            vaadinUiForwardingController());
-                }
-            }
-
-            getLogger().info("Forwarding @SpringUI URLs from {}", urlMappings);
-
+//            // map every @SpringUI both with and without trailing slash
+//            for (String path : getUIPaths()) {
+//                urlMappings.put("/" + path, vaadinUiForwardingController());
+//                if (path.length() > 0) {
+//                    urlMappings.put("/" + path + "/",
+//                            vaadinUiForwardingController());
+//                }
+//            }
+//
+//            urlMappings.put("**", vaadinUiForwardingController());
+//            getLogger().info("Forwarding @SpringUI URLs from {}", urlMappings);
         }
 
         mapping.setUrlMap(urlMappings);

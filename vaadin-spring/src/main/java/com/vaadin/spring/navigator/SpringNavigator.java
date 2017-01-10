@@ -202,7 +202,7 @@ public class SpringNavigator extends Navigator {
      *            navigator
      */
     public void init(UI ui, ViewDisplay display) {
-        init(ui, new UriFragmentManager(ui.getPage()), display);
+        init(ui, new PushStateManager(ui), display);
     }
 
     /**
